@@ -3,7 +3,6 @@ from py_clob_client.client import ClobClient
 from py_clob_client.clob_types import OrderArgs, BalanceAllowanceParams, AssetType
 from py_clob_client.order_builder.constants import BUY
 
-from web3.constants import MAX_INT
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
 
@@ -15,6 +14,8 @@ load_dotenv()
 import time
 
 import os
+
+MAX_INT = 2**256 - 1
 
 def get_clob_client():
     host = "https://clob.polymarket.com"

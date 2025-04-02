@@ -1,8 +1,8 @@
 import time
 import pandas as pd
-from trading_utils import get_clob_client
-from google_utils import get_spreadsheet
-from find_markets import get_sel_df, get_all_markets, get_all_results, get_markets, add_volatility_to_df
+from data_updater.trading_utils import get_clob_client
+from data_updater.google_utils import get_spreadsheet
+from data_updater.find_markets import get_sel_df, get_all_markets, get_all_results, get_markets, add_volatility_to_df
 from gspread_dataframe import set_with_dataframe
 import traceback
 

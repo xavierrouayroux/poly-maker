@@ -31,39 +31,49 @@ The repository consists of several interconnected modules:
 
 ## Installation
 
-1. Clone the repository:
+1. **Clone the repository**:
 ```
 git clone https://github.com/yourusername/poly-maker.git
 cd poly-maker
 ```
 
-2. Install Python dependencies:
+2. **Install Python dependencies**:
 ```
 pip install -r requirements.txt
 ```
 
-3. Install Node.js dependencies for the merger:
+3. **Install Node.js dependencies for the merger**:
 ```
 cd poly_merger
 npm install
 cd ..
 ```
 
-4. Set up your environment variables by copying the example file:
+4. **Set up environment variables**:
 ```
 cp .env.example .env
 ```
 
-5. Edit the `.env` file with your credentials:
+5. **Configure your credentials in `.env`**:
 - `PK`: Your private key for Polymarket
 - `BROWSER_ADDRESS`: Your wallet address
-- `SPREADSHEET_URL`: URL to your Google Sheets configuration
 
-6. Create a Google Service Account and download credentials:
+6. **Set up Google Sheets integration**:
+   - Create a Google Service Account and download credentials to the main directory
+   - Copy the [sample Google Sheet](https://docs.google.com/spreadsheets/d/1Kt6yGY7CZpB75cLJJAdWo7LSp9Oz7pjqfuVWwgtn7Ns/edit?gid=1884499063#gid=1884499063)
+   - Add your Google service account to the sheet with edit permissions
+   - Update `SPREADSHEET_URL` in your `.env` file
+
+7. **Update market data**:
+   - Run `python update_markets.py` to fetch all available markets
+   - This should run continuously in the background (preferably on a different IP than your trading bot)
+   - Add markets you want to trade to the "Selected Markets" sheet. You'd wanna select markets from the "Volatility Markets" sheet.
+   - Configure corresponding parameters in the "Hyperparameters" sheet. Default parameters that worked well in November are there.
+
+8. **Start the market making bot**:
 ```
-cp data_updater/credentials.json.example credentials.json
+python main.py
 ```
-Edit the credentials.json with your Google service account details.
 
 ## Configuration
 
