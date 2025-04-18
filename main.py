@@ -9,6 +9,9 @@ from poly_data.data_utils import update_markets, update_positions, update_orders
 from poly_data.websocket_handlers import connect_market_websocket, connect_user_websocket
 import poly_data.global_state as global_state
 from poly_data.data_processing import remove_from_performing
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def update_once():
     """

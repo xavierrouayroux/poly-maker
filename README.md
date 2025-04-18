@@ -58,6 +58,8 @@ cp .env.example .env
 - `PK`: Your private key for Polymarket
 - `BROWSER_ADDRESS`: Your wallet address
 
+Make sure your wallet has done at least one trade thru the UI so that the permissions are proper.
+
 6. **Set up Google Sheets integration**:
    - Create a Google Service Account and download credentials to the main directory
    - Copy the [sample Google Sheet](https://docs.google.com/spreadsheets/d/1Kt6yGY7CZpB75cLJJAdWo7LSp9Oz7pjqfuVWwgtn7Ns/edit?gid=1884499063#gid=1884499063)
