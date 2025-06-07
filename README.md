@@ -85,34 +85,8 @@ The bot is configured via a Google Spreadsheet with several worksheets:
 - **All Markets**: Database of all markets on Polymarket
 - **Hyperparameters**: Configuration parameters for the trading logic
 
-## Usage
 
-### Data Collection
-
-Before running the main bot, you need to gather market data:
-
-```
-cd data_updater
-python find_markets.py
-```
-
-This will populate your Google Sheet with available markets.
-
-### Running the Bot
-
-Start the market maker:
-
-```
-python main.py
-```
-
-The bot will:
-1. Connect to Polymarket API
-2. Subscribe to market data via WebSockets
-3. Place and manage orders according to your configuration
-4. Monitor and merge positions when beneficial
-
-## Notes on poly_merger
+## Poly Merger
 
 The `poly_merger` module is a particularly powerful utility that handles position merging on Polymarket. It's built on open-source Polymarket code and provides a smooth way to consolidate positions, reducing gas fees and improving capital efficiency.
 
@@ -121,7 +95,6 @@ The `poly_merger` module is a particularly powerful utility that handles positio
 - This code interacts with real markets and can potentially lose real money
 - Test thoroughly with small amounts before deploying with significant capital
 - The `data_updater` is technically a separate repository but is included here for convenience
-- The `find_markets.py` script in the data_updater is essential for the bot to get market information
 
 ## License
 
