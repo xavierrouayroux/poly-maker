@@ -45,8 +45,10 @@ def get_sheet_df(read_only=None):
 
     for r in records:
         # Update current_type only when we have a non-empty type value
-        if r['type'] and r['type'].strip():
-            current_type = r['type'].strip()
+        # Handle both string and NaN values from pandas
+        type_value = r['type']
+        if type_value and str(type_value).strip() and str(type_value) != 'nan':
+            current_type = str(type_value).strip()
         
         # Skip rows where we don't have a current_type set
         if current_type:
