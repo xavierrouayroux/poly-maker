@@ -31,9 +31,26 @@ def send_buy_order(order):
     """
     client = global_state.client
 
-    # Cancel existing orders for this token to avoid conflicts
-    if order['orders']['buy']['size'] > 0 or order['orders']['sell']['size'] > 0:
+    # Only cancel existing orders if we need to make significant changes
+    existing_buy_size = order['orders']['buy']['size']
+    existing_buy_price = order['orders']['buy']['price']
+    
+    # Cancel orders if price changed significantly or size needs major adjustment
+    price_diff = abs(existing_buy_price - order['price']) if existing_buy_price > 0 else float('inf')
+    size_diff = abs(existing_buy_size - order['size']) if existing_buy_size > 0 else float('inf')
+    
+    should_cancel = (
+        price_diff > 0.005 or  # Cancel if price diff > 0.5 cents
+        size_diff > order['size'] * 0.1 or  # Cancel if size diff > 10%
+        existing_buy_size == 0  # Cancel if no existing buy order
+    )
+    
+    if should_cancel and (existing_buy_size > 0 or order['orders']['sell']['size'] > 0):
+        print(f"Cancelling buy orders - price diff: {price_diff:.4f}, size diff: {size_diff:.1f}")
         client.cancel_all_asset(order['token'])
+    elif not should_cancel:
+        print(f"Keeping existing buy orders - minor changes: price diff: {price_diff:.4f}, size diff: {size_diff:.1f}")
+        return  # Don't place new order if existing one is fine
 
     # Calculate minimum acceptable price based on market spread
     incentive_start = order['mid_price'] - order['max_spread']/100
@@ -75,9 +92,26 @@ def send_sell_order(order):
     """
     client = global_state.client
 
-    # Cancel existing orders for this token to avoid conflicts
-    if order['orders']['buy']['size'] > 0 or order['orders']['sell']['size'] > 0:
+    # Only cancel existing orders if we need to make significant changes
+    existing_sell_size = order['orders']['sell']['size']
+    existing_sell_price = order['orders']['sell']['price']
+    
+    # Cancel orders if price changed significantly or size needs major adjustment
+    price_diff = abs(existing_sell_price - order['price']) if existing_sell_price > 0 else float('inf')
+    size_diff = abs(existing_sell_size - order['size']) if existing_sell_size > 0 else float('inf')
+    
+    should_cancel = (
+        price_diff > 0.005 or  # Cancel if price diff > 0.5 cents
+        size_diff > order['size'] * 0.1 or  # Cancel if size diff > 10%
+        existing_sell_size == 0  # Cancel if no existing sell order
+    )
+    
+    if should_cancel and (existing_sell_size > 0 or order['orders']['buy']['size'] > 0):
+        print(f"Cancelling sell orders - price diff: {price_diff:.4f}, size diff: {size_diff:.1f}")
         client.cancel_all_asset(order['token'])
+    elif not should_cancel:
+        print(f"Keeping existing sell orders - minor changes: price diff: {price_diff:.4f}, size diff: {size_diff:.1f}")
+        return  # Don't place new order if existing one is fine
 
     print(f'Creating new order for {order["size"]} at {order["price"]}')
     client.create_order(
