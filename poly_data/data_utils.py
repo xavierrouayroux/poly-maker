@@ -150,8 +150,9 @@ def update_markets():
 
     if len(received_df) > 0:
         global_state.df, global_state.params = received_df.copy(), received_params
+    
 
-    for idx, row in global_state.df.iterrows():
+    for _, row in global_state.df.iterrows():
         for col in ['token1', 'token2']:
             row[col] = str(row[col])
 

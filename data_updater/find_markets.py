@@ -216,20 +216,27 @@ def process_single_row(row, client):
     return ret
 
 
-def get_all_results(all_df, client):
+def get_all_results(all_df, client, max_workers=5):
     all_results = []
 
-    for idx, row in all_df.iterrows():
-
+    def process_with_progress(args):
+        idx, row = args
         try:
-            if idx % 10 == 0:
-                print(f'{idx} of {len(all_df)}')
-
-            time.sleep(1)
-            result = process_single_row(row, client)
-            all_results.append(result)
+            return process_single_row(row, client)
         except:
             print("error fetching market")
+            return None
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = [executor.submit(process_with_progress, (idx, row)) for idx, row in all_df.iterrows()]
+        
+        for future in concurrent.futures.as_completed(futures):
+            result = future.result()
+            if result is not None:
+                all_results.append(result)
+
+            if len(all_results) % (max_workers * 2) == 0:
+                print(f'{len(all_results)} of {len(all_df)}')
 
     return all_results
 
@@ -283,21 +290,30 @@ def add_volatility(row):
     new_dict = {**row_dict, **stats}
     return new_dict
 
-def add_volatility_to_df(df):
+def add_volatility_to_df(df, max_workers=3):
     
     results = []
     df = df.reset_index(drop=True)
 
-    for idx, row in df.iterrows():
+    def process_volatility_with_progress(args):
+        idx, row = args
         try:
-            if idx % 10 == 0:
-                print(f'{idx} of {len(df)}')
-                
             ret = add_volatility(row.to_dict())
-            time.sleep(1)
-            results.append(ret)
+            return ret
         except:
             print("Error fetching volatility")
+            return None
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = [executor.submit(process_volatility_with_progress, (idx, row)) for idx, row in df.iterrows()]
+        
+        for future in concurrent.futures.as_completed(futures):
+            result = future.result()
+            if result is not None:
+                results.append(result)
+                
+            if len(results) % (max_workers * 2) == 0:
+                print(f'{len(results)} of {len(df)}')
             
     return pd.DataFrame(results)
 
