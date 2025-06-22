@@ -30,15 +30,36 @@ def get_best_bid_ask_deets(market, name, size, deviation_threshold=0.05):
     best_bid, best_bid_size, second_best_bid, second_best_bid_size, top_bid = find_best_price_with_size(global_state.all_data[market]['bids'], size, reverse=True)
     best_ask, best_ask_size, second_best_ask, second_best_ask_size, top_ask = find_best_price_with_size(global_state.all_data[market]['asks'], size, reverse=False)
     
-    mid_price = (best_bid + best_ask) / 2
-
-    bid_sum_within_n_percent = sum(size for price, size in global_state.all_data[market]['bids'].items() if best_bid <= price <= mid_price * (1 + deviation_threshold))
-    ask_sum_within_n_percent = sum(size for price, size in global_state.all_data[market]['asks'].items() if mid_price * (1 - deviation_threshold) <= price <= best_ask)
+    # Handle None values in mid_price calculation
+    if best_bid is not None and best_ask is not None:
+        mid_price = (best_bid + best_ask) / 2
+        bid_sum_within_n_percent = sum(size for price, size in global_state.all_data[market]['bids'].items() if best_bid <= price <= mid_price * (1 + deviation_threshold))
+        ask_sum_within_n_percent = sum(size for price, size in global_state.all_data[market]['asks'].items() if mid_price * (1 - deviation_threshold) <= price <= best_ask)
+    else:
+        mid_price = None
+        bid_sum_within_n_percent = 0
+        ask_sum_within_n_percent = 0
 
     if name == 'token2':
-        best_bid, second_best_bid, top_bid, best_ask, second_best_ask, top_ask = 1 - best_ask, 1 - second_best_ask, 1 - top_ask, 1 - best_bid, 1 - second_best_bid, 1 - top_bid
-        best_bid_size, second_best_bid_size, best_ask_size, second_best_ask_size = best_ask_size, second_best_ask_size, best_bid_size, second_best_bid_size
-        bid_sum_within_n_percent, ask_sum_within_n_percent = ask_sum_within_n_percent, bid_sum_within_n_percent
+        # Handle None values before arithmetic operations
+        if all(x is not None for x in [best_bid, best_ask, second_best_bid, second_best_ask, top_bid, top_ask]):
+            best_bid, second_best_bid, top_bid, best_ask, second_best_ask, top_ask = 1 - best_ask, 1 - second_best_ask, 1 - top_ask, 1 - best_bid, 1 - second_best_bid, 1 - top_bid
+            best_bid_size, second_best_bid_size, best_ask_size, second_best_ask_size = best_ask_size, second_best_ask_size, best_bid_size, second_best_bid_size
+            bid_sum_within_n_percent, ask_sum_within_n_percent = ask_sum_within_n_percent, bid_sum_within_n_percent
+        else:
+            # Handle case where some prices are None - use available values or defaults
+            if best_bid is not None and best_ask is not None:
+                best_bid, best_ask = 1 - best_ask, 1 - best_bid
+                best_bid_size, best_ask_size = best_ask_size, best_bid_size
+            if second_best_bid is not None:
+                second_best_bid = 1 - second_best_bid
+            if second_best_ask is not None:
+                second_best_ask = 1 - second_best_ask
+            if top_bid is not None:
+                top_bid = 1 - top_bid
+            if top_ask is not None:
+                top_ask = 1 - top_ask
+            bid_sum_within_n_percent, ask_sum_within_n_percent = ask_sum_within_n_percent, bid_sum_within_n_percent
 
 
 
