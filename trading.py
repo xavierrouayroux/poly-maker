@@ -161,6 +161,10 @@ async def perform_trade(market):
 
                 # Get market depth and price information
                 deets = get_best_bid_ask_deets(market, detail['name'], 100, 0.1)
+
+                #if deet has None for one these values below, call it with min size of 20
+                if deets['best_bid'] is None or deets['best_ask'] is None or deets['best_bid_size'] is None or deets['best_ask_size'] is None:
+                    deets = get_best_bid_ask_deets(market, detail['name'], 20, 0.1)
                 
                 # Extract all order book details
                 best_bid = deets['best_bid']
@@ -217,8 +221,12 @@ async def perform_trade(market):
                       f"avgPrice: {avgPrice}, Best Bid: {best_bid}, Best Ask: {best_ask}, "
                       f"Bid Price: {bid_price}, Ask Price: {ask_price}, Mid Price: {mid_price}")
 
+                # Get position for the opposite token to calculate total exposure
+                other_token = global_state.REVERSE_TOKENS[str(token)]
+                other_position = get_position(other_token)['size']
+                
                 # Calculate how much to buy or sell based on our position
-                buy_amount, sell_amount = get_buy_sell_amount(position, bid_price, row)
+                buy_amount, sell_amount = get_buy_sell_amount(position, bid_price, row, other_position)
 
                 # Prepare order object with all necessary information
                 order = {
@@ -231,7 +239,8 @@ async def perform_trade(market):
                     'row': row
                 }
             
-                print(f"Position: {position}, Trade Size: {row['trade_size']}, "
+                print(f"Position: {position}, Other Position: {other_position}, "
+                      f"Trade Size: {row['trade_size']}, Max Size: {max_size}, "
                       f"buy_amount: {buy_amount}, sell_amount: {sell_amount}")
 
                 # File to store risk management information for this market
@@ -298,11 +307,14 @@ async def perform_trade(market):
                         continue
 
                 # ------- BUY ORDER LOGIC -------
+                # Get max_size, defaulting to trade_size if not specified
+                max_size = row.get('max_size', row['trade_size'])
+                
                 # Only buy if:
-                # 1. Position is less than 90% of target size
+                # 1. Position is less than max_size (new logic)
                 # 2. Position is less than absolute cap (250)
                 # 3. Buy amount is above minimum size
-                if position < 0.9 * row['trade_size'] and position < 250 and buy_amount > 0 and buy_amount >= row['min_size']:
+                if position < max_size and position < 250 and buy_amount > 0 and buy_amount >= row['min_size']:
                     # Get reference price from market data
                     sheet_value = row['best_bid']
 
@@ -366,8 +378,8 @@ async def perform_trade(market):
                                     print(f"Sending Buy Order for {token} because better price. "
                                           f"Orders look like this: {orders['buy']}. Best Bid: {best_bid}")
                                     send_buy_order(order)
-                                # 2. Current position + orders is not enough to reach target
-                                elif position + orders['buy']['size'] < 0.95 * row['trade_size']:
+                                # 2. Current position + orders is not enough to reach max_size
+                                elif position + orders['buy']['size'] < 0.95 * max_size:
                                     print(f"Sending Buy Order for {token} because not enough position + size")
                                     send_buy_order(order)
                                 # 3. Our current order is too large and needs to be resized
