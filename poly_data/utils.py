@@ -65,5 +65,4 @@ def get_sheet_df(read_only=None):
             
             hyperparams.setdefault(current_type, {})[r['param']] = value
 
-    print(f"DEBUG: Loaded hyperparameters: {hyperparams}")
     return result, hyperparams

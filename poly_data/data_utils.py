@@ -151,16 +151,6 @@ def update_markets():
     if len(received_df) > 0:
         global_state.df, global_state.params = received_df.copy(), received_params
     
-    # Debug: Show what param_types are in the markets data
-    if 'param_type' in received_df.columns:
-        param_types_used = received_df['param_type'].unique()
-        print(f"DEBUG: param_types used in markets: {param_types_used}")
-        print(f"DEBUG: Available hyperparameter types: {list(received_params.keys())}")
-        
-        # Check for mismatches
-        missing_params = [pt for pt in param_types_used if pt not in received_params.keys()]
-        if missing_params:
-            print(f"WARNING: Missing hyperparameters for param_types: {missing_params}")
 
     for _, row in global_state.df.iterrows():
         for col in ['token1', 'token2']:

@@ -153,8 +153,6 @@ async def perform_trade(market):
 
             # Get trading parameters for this market type
             params = global_state.params[row['param_type']]
-            print(f"DEBUG: Using param_type: {row['param_type']}, Available params: {params}")
-            print(f"DEBUG: All available param types: {list(global_state.params.keys())}")
             
             # Create a list with both outcomes for the market
             deets = [
