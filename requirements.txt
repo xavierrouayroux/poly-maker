@@ -17,3 +17,4 @@ cryptography==42.0.8
 asyncio
 requests
 google-auth
+web3==5.3.1
