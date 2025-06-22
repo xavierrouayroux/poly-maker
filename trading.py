@@ -227,6 +227,9 @@ async def perform_trade(market):
                 
                 # Calculate how much to buy or sell based on our position
                 buy_amount, sell_amount = get_buy_sell_amount(position, bid_price, row, other_position)
+                
+                # Get max_size for logging (same logic as in get_buy_sell_amount)
+                max_size = row.get('max_size', row['trade_size'])
 
                 # Prepare order object with all necessary information
                 order = {
