@@ -44,7 +44,24 @@ def get_sheet_df(read_only=None):
     hyperparams, current_type = {}, None
 
     for r in records:
-        current_type = r['type'] or current_type
-        hyperparams.setdefault(current_type, {})[r['param']] = r['value']
+        # Update current_type only when we have a non-empty type value
+        if r['type'] and r['type'].strip():
+            current_type = r['type'].strip()
+        
+        # Skip rows where we don't have a current_type set
+        if current_type:
+            # Convert numeric values to appropriate types
+            value = r['value']
+            try:
+                # Try to convert to float if it's numeric
+                if isinstance(value, str) and value.replace('.', '').replace('-', '').isdigit():
+                    value = float(value)
+                elif isinstance(value, (int, float)):
+                    value = float(value)
+            except (ValueError, TypeError):
+                pass  # Keep as string if conversion fails
+            
+            hyperparams.setdefault(current_type, {})[r['param']] = value
 
+    print(f"DEBUG: Loaded hyperparameters: {hyperparams}")
     return result, hyperparams
