@@ -88,8 +88,11 @@ def fetch_and_process_data():
 
 
     all_df = get_all_markets(client)
+    print("Got all Markets")
     all_results = get_all_results(all_df, client)
+    print("Got all Results")
     m_data, all_markets = get_markets(all_results, sel_df, maker_reward=0.75)
+    print("Got all orderbook")
 
     print(f'{pd.to_datetime("now")}: Fetched all markets data of length {len(all_markets)}.')
     new_df = add_volatility_to_df(all_markets)
@@ -124,7 +127,7 @@ if __name__ == "__main__":
     while True:
         try:
             fetch_and_process_data()
-            time.sleep(60 * 5)  # Sleep for 5 minutes (300 seconds)
+            time.sleep(60 * 60)  # Sleep for an hour
         except Exception as e:
             traceback.print_exc()
             print(str(e))
