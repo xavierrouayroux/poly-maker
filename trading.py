@@ -429,7 +429,7 @@ async def perform_trade(market):
                     #     send_sell_order(order)
 
         except Exception as ex:
-            print(f"Error performing trade for {market}")
+            print(f"Error performing trade for {market}: {ex}")
             traceback.print_exc()
 
         # Clean up memory and introduce a small delay

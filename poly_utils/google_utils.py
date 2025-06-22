@@ -66,17 +66,67 @@ class ReadOnlyWorksheet:
     def get_all_records(self):
         """Get all records from the worksheet as a list of dictionaries"""
         try:
-            # Use the public CSV export URL
-            csv_url = f"https://docs.google.com/spreadsheets/d/{self.sheet_id}/gviz/tq?tqx=out:csv&sheet={self.title}"
-            response = requests.get(csv_url, timeout=30)
-            response.raise_for_status()
+            # URL encode the sheet title to handle spaces and special characters
+            import urllib.parse
+            encoded_title = urllib.parse.quote(self.title)
             
-            # Read CSV data into DataFrame
-            from io import StringIO
-            df = pd.read_csv(StringIO(response.text))
+            # Map known sheet names to likely GID positions
+            # Based on the sheet order: Full Markets, All Markets, Volatility Markets, Selected Markets, Hyperparameters
+            sheet_gid_mapping = {
+                'Full Markets': 0,
+                'All Markets': 1, 
+                'Volatility Markets': 2,
+                'Selected Markets': 3,
+                'Hyperparameters': 4
+            }
             
-            # Convert to list of dictionaries (same format as gspread)
-            return df.to_dict('records')
+            # Try multiple URL formats for accessing the sheet
+            urls_to_try = [
+                f"https://docs.google.com/spreadsheets/d/{self.sheet_id}/gviz/tq?tqx=out:csv&sheet={encoded_title}",
+                f"https://docs.google.com/spreadsheets/d/{self.sheet_id}/gviz/tq?tqx=out:csv&sheet={self.title}",
+            ]
+            
+            # Add GID-based URL if we know the likely position for this sheet
+            if self.title in sheet_gid_mapping:
+                gid = sheet_gid_mapping[self.title]
+                urls_to_try.append(f"https://docs.google.com/spreadsheets/d/{self.sheet_id}/export?format=csv&gid={gid}")
+            
+            # Also try a few common GID positions as fallback
+            for gid in [0, 1, 2, 3, 4]:
+                urls_to_try.append(f"https://docs.google.com/spreadsheets/d/{self.sheet_id}/export?format=csv&gid={gid}")
+            
+            for csv_url in urls_to_try:
+                try:
+                    print(f"Trying to fetch sheet '{self.title}' from: {csv_url}")
+                    response = requests.get(csv_url, timeout=30)
+                    response.raise_for_status()
+                    
+                    # Read CSV data into DataFrame
+                    from io import StringIO
+                    df = pd.read_csv(StringIO(response.text))
+                    
+                    # Check if we got meaningful data (not empty or error response)
+                    if not df.empty and len(df.columns) > 1:
+                        # For Hyperparameters sheet, verify it has the expected columns
+                        if self.title == 'Hyperparameters':
+                            expected_cols = ['type', 'param', 'value']
+                            if all(col in df.columns for col in expected_cols):
+                                print(f"Successfully fetched {len(df)} hyperparameter records")
+                                return df.to_dict('records')
+                            else:
+                                print(f"Sheet doesn't match Hyperparameters format. Columns: {list(df.columns)}")
+                                continue
+                        else:
+                            print(f"Successfully fetched {len(df)} records from sheet '{self.title}'")
+                            # Convert to list of dictionaries (same format as gspread)
+                            return df.to_dict('records')
+                    
+                except Exception as url_error:
+                    print(f"Failed with URL {csv_url}: {url_error}")
+                    continue
+            
+            print(f"All URL attempts failed for sheet '{self.title}'")
+            return []
             
         except Exception as e:
             print(f"Warning: Could not fetch data from sheet '{self.title}': {e}")
