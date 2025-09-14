@@ -4,8 +4,8 @@ from py_clob_client.clob_types import OrderArgs, BalanceAllowanceParams, AssetTy
 from py_clob_client.order_builder.constants import BUY
 
 from web3 import Web3
-#from web3.middleware import geth_poa_middleware
-from web3.middleware import ExtraDataToPOAMiddleware as geth_poa_middleware
+from web3.middleware import geth_poa_middleware
+#from web3.middleware import ExtraDataToPOAMiddleware as geth_poa_middleware
 
 import json
 
