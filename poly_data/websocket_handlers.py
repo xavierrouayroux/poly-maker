@@ -36,6 +36,8 @@ async def connect_market_websocket(chunk):
             while True:
                 message = await websocket.recv()
                 json_data = json.loads(message)
+                #print(f"type(json_data)={type(json_data)}")
+                #print(f"json_data (repr)={json_data!r}")  # unambiguous representation
                 # Process order book updates and trigger trading as needed
                 process_data(json_data)
         except websockets.ConnectionClosed:
